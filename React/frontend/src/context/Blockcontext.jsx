@@ -4,7 +4,7 @@ export const BlockContext = createContext();
 
 export const BlockProvider = ({ children }) => {
   const [file, setFile] = useState(null);
-
+   //deva
   const handleFile = (selectedFile) => {
     try {
       setFile(selectedFile);
