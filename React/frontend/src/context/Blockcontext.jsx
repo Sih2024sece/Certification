@@ -5,8 +5,6 @@ export const BlockContext = createContext();
 export const BlockProvider = ({ children }) => {
   const [file, setFile] = useState(null);
 
-  //dev commit
-
   const handleFile = (selectedFile) => {
     try {
       setFile(selectedFile);
