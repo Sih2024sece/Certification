@@ -4,7 +4,7 @@ from PIL import Image
 import easyocr
 import re
 import warnings
-
+#hello
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 image_path = r'D:\SIH_Block\Project-main-file\Flask-Backend\image.png'
