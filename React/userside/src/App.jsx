@@ -1,9 +1,10 @@
-import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Verify from './components/Verify';
+import Home from './components/Home';
 import { BlockProvider } from './context/Blockcontext';
-import Details from './components/Details';
-import File from './components/File';
 
-export const ContractAbi = [
+export const ContractAbi =[
   {
     "inputs": [],
     "stateMutability": "nonpayable",
@@ -432,8 +433,13 @@ export const account_private_key = new Uint8Array(priv_key.match(/.{1,2}/g).map(
 function App() {
   return (
     <BlockProvider>
-      
-      <File/>
+      <Router>
+        <Navbar />
+        <Routes>
+         <Route path="/" element={<Home />} />
+          <Route path="/verification" element={<Verify />} />
+        </Routes>
+      </Router>
     </BlockProvider>
   );
 }

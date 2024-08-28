@@ -5,3 +5,10 @@
 .background{
 background-image: linear-gradient(to top, #c1dfc4 0%, #deecdd 100%);
 }
+.connect-button{
+    height: 40px;
+    width: 140px;
+    border-style: solid;
+    border-radius: 12px;
+    background-color: aliceblue;
+}
