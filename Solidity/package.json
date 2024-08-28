@@ -19,6 +19,7 @@
   "dependencies": {
     "@chainlink/contracts": "^1.2.0",
     "@openzeppelin/cli": "^2.8.2",
-    "@openzeppelin/contracts-upgradeable": "^5.0.2"
+    "@openzeppelin/contracts-upgradeable": "^5.0.2",
+    "thirdweb": "^5.48.2"
   }
 }
