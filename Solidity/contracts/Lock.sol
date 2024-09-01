@@ -1,229 +1,190 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.18;
 
 contract VerifierContract {
-    address public owner;
+    address public immutable owner;
 
     struct FileInfo {
-        string id;
-        bytes32 fileHash;
+        string fileHash;
+        string fileName;
+        string encryptedFileAesKey;
+        string encryptedFilePrivateKey;
+        string fileType;
         bytes32 metadataHash;
-        bytes encryptedFileKey;
+        address issuer;
         address holder;
-        bool exists;
+        address[] permissions;
+        mapping(address => uint256) permissionExpirations; // Mapping cannot be returned in public/external functions
     }
 
-    struct FileData {
+    struct FileInfoView {
+        string fileHash;
+        string fileName;
+        string encryptedFileAesKey;
+        string encryptedFilePrivateKey;
+        string fileType;
+        bytes32 metadataHash;
+        address issuer;
+        address holder;
+    }
+
+    struct FileUploadParams {
+        string fileHash;
+        string fileName;
+        address holder;
         string id;
         bytes32 metadataHash;
-        bytes encryptedFileKey;
+        string encryptedFileAesKey;
+        string encryptedFilePrivateKey;
+        string fileType;
     }
 
-    mapping(bytes32 => FileInfo) public files;
-    mapping(bytes32 => FileInfo) public metaFile;
-    mapping(string => FileInfo) public filesById;
-    mapping(address => bytes32[]) public holderFiles;
+    struct FileIdName {
+        string id;
+        string fileName;
+    }
 
-    event FileUploaded(bytes32 indexed fileHash, address indexed holder);
-    event ZKPVerified(address indexed user, bool valid);
+    mapping(string => FileInfo) private _files;
+    mapping(bytes32 => string) private _metaFileHashToFileHash;
+    mapping(string => string) private _idToFileHash;
+    mapping(address => string[]) private _holderFiles;
 
-    modifier onlyOwner {
-        require(msg.sender == owner, "You are not the owner");
+    event FileUploaded(string indexed fileHash, address indexed holder);
+    event PermissionGranted(string indexed fileHash, address indexed requester, uint256 expirationTime);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not owner");
         _;
     }
 
-    modifier fileExists(bytes32 _fileHash) {
-        require(files[_fileHash].exists, "File does not exist");
-        _;
-    }
-
-    constructor() {
+    constructor() payable {
         owner = msg.sender;
     }
 
-    function uploadFile(
-        bytes32 _fileHash,
-        FileData memory fileData
-    ) external {
-        require(!files[_fileHash].exists, "File already exists");
+    /**
+     * @dev Upload a file's details to the contract.
+     * @param params The struct containing all necessary parameters to upload a file.
+     */
+    function uploadFile(FileUploadParams calldata params) external {
+        require(bytes(_files[params.fileHash].fileHash).length == 0, "File exists");
 
-        files[_fileHash] = FileInfo({
-            id: fileData.id,
-            fileHash: _fileHash,
-            metadataHash: fileData.metadataHash,
-            encryptedFileKey: fileData.encryptedFileKey,
-            holder: msg.sender,
-            exists: true
-        });
-        metaFile[fileData.metadataHash] = files[_fileHash];
-        filesById[fileData.id] = files[_fileHash];
-        holderFiles[msg.sender].push(_fileHash);
-        emit FileUploaded(_fileHash, msg.sender);
+        FileInfo storage fileInfo = _files[params.fileHash];
+        fileInfo.fileHash = params.fileHash;
+        fileInfo.metadataHash = params.metadataHash;
+        fileInfo.encryptedFileAesKey = params.encryptedFileAesKey;
+        fileInfo.encryptedFilePrivateKey = params.encryptedFilePrivateKey;
+        fileInfo.issuer = msg.sender;
+        fileInfo.holder = params.holder;
+        fileInfo.fileName = params.fileName;
+        fileInfo.fileType = params.fileType;
+
+        _metaFileHashToFileHash[params.metadataHash] = params.fileHash;
+        _idToFileHash[params.id] = params.fileHash;
+        _holderFiles[params.holder].push(params.id);
+
+        emit FileUploaded(params.fileHash, params.holder);
     }
 
-    function getFileInfo(bytes32 _fileHash) public view fileExists(_fileHash) returns (FileInfo memory) {
-        return files[_fileHash];
+    /**
+     * @dev Verify if a file exists using its metadata hash.
+     * @param _metadataHash The hash of the file's metadata.
+     * @return exists True if the file exists, otherwise false.
+     */
+    function verifyFileByMetaHash(bytes32 _metadataHash) external view returns (bool exists) {
+        exists = bytes(_metaFileHashToFileHash[_metadataHash]).length != 0;
     }
 
-    function verifyFileByMetaHash(bytes32 _metadataHash) external view returns (bool) {
-        require(metaFile[_metadataHash].exists, "File does not exist");
-        return true;
-    }
+    /**
+     * @dev Grant permission to a requester to access file information for a limited time.
+     * @param _id The unique identifier of the file.
+     * @param _requester The address of the requester.
+     * @param _duration The duration (in seconds) for which the permission is granted.
+     */
+    function grantPermissionToFileInfo(string calldata _id, address _requester, uint256 _duration) external {
+        string storage fileHash = _idToFileHash[_id];
+        require(bytes(fileHash).length != 0, "File missing");
 
-    function getFileInfoById(string memory _id) public view returns (FileInfo memory) {
-        require(filesById[_id].exists, "File does not exist");
-        return filesById[_id];
-    }
+        FileInfo storage fileInfo = _files[fileHash];
+        uint256 expirationTime = block.timestamp + _duration;
+        fileInfo.permissionExpirations[_requester] = expirationTime;
 
-    function getHolderFileInfos(address _holder) public view returns (FileInfo[] memory) {
-        bytes32[] memory holderFileHashes = holderFiles[_holder];
-        FileInfo[] memory fileInfos = new FileInfo[](holderFileHashes.length);
+        // Only add to permissions array if not already present
+        bool alreadyHasPermission = false;
+        uint256 length = fileInfo.permissions.length;
 
-        for (uint i = 0; i < holderFileHashes.length; i++) {
-            fileInfos[i] = files[holderFileHashes[i]];
+        for (uint256 i = 0; i < length; ) {
+            if (fileInfo.permissions[i] == _requester) {
+                alreadyHasPermission = true;
+                break;
+            }
+            unchecked { ++i; }
         }
 
-        return fileInfos;
+        if (!alreadyHasPermission) {
+            fileInfo.permissions.push(_requester);
+        }
+
+        emit PermissionGranted(fileHash, _requester, expirationTime);
+    }
+
+    /**
+     * @dev Get a view of the file information by its unique identifier (excluding mapping).
+     * @param _id The unique identifier of the file.
+     * @return info The file information view (without mapping).
+     */
+    function getFileInfoById(string calldata _id) external view returns (FileInfoView memory info) {
+        string storage fileHash = _idToFileHash[_id];
+        require(bytes(fileHash).length != 0, "File missing");
+
+        FileInfo storage fileInfo = _files[fileHash];
+
+        if (msg.sender != fileInfo.holder) {
+            require(hasValidPermission(fileInfo, msg.sender), "No valid permission");
+        }
+
+        // Return a struct that excludes the mapping
+        info = FileInfoView({
+            fileHash: fileInfo.fileHash,
+            fileName: fileInfo.fileName,
+            encryptedFileAesKey: fileInfo.encryptedFileAesKey,
+            encryptedFilePrivateKey: fileInfo.encryptedFilePrivateKey,
+            fileType: fileInfo.fileType,
+            metadataHash: fileInfo.metadataHash,
+            issuer: fileInfo.issuer,
+            holder: fileInfo.holder
+        });
+    }
+
+    /**
+     * @dev Get all files associated with a holder.
+     * @param _holder The address of the file holder.
+     * @return result An array of FileIdName structs containing file ids and names.
+     */
+    function getHolderFileInfos(address _holder) external view returns (FileIdName[] memory result) {
+        string[] storage fileIds = _holderFiles[_holder];
+        uint256 length = fileIds.length;
+
+        // Allocate memory for result array
+        result = new FileIdName[](length);
+
+        for (uint256 i = 0; i < length; ) {
+            string storage fileHash = _idToFileHash[fileIds[i]];
+            result[i] = FileIdName({
+                id: fileIds[i],
+                fileName: _files[fileHash].fileName
+            });
+            unchecked { ++i; }
+        }
+    }
+
+    /**
+     * @dev Check if the requester has a valid permission to access the file.
+     * @param fileInfo The FileInfo struct containing permission details.
+     * @param requester The address of the requester.
+     * @return isValid True if the permission is valid, otherwise false.
+     */
+    function hasValidPermission(FileInfo storage fileInfo, address requester) internal view returns (bool isValid) {
+        uint256 expirationTime = fileInfo.permissionExpirations[requester];
+        isValid = expirationTime > block.timestamp;
     }
 }
-
-
-
-// pragma solidity ^0.8.0;
-
-// import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
-
-// contract VerifierContract is ERC2771Context {
-//     address public owner;
-//     bytes32 public DOMAIN_SEPARATOR;
-//     bytes32 public constant PERMIT_TYPEHASH = keccak256(
-//         "Permit(address holder,bytes32 fileHash,FileData fileData,uint256 nonce,uint256 expiry)"
-//     );
-//     mapping(address => uint) public nonces;
-
-//     struct FileInfo {
-//         string id;
-//         bytes32 fileHash;
-//         bytes32 metadataHash;
-//         bytes encryptedFileKey;
-//         address holder;
-//         bool exists;
-//     }
-
-//     struct FileData {
-//         string id;
-//         bytes32 metadataHash;
-//         bytes encryptedFileKey;
-//     }
-
-//     mapping(bytes32 => FileInfo) public files;
-//     mapping(string => FileInfo) public filesById;
-//     mapping(address => bytes32[]) public holderFiles;
-
-//     event FileUploaded(bytes32 indexed fileHash, address indexed holder);
-//     event ZKPVerified(address indexed user, bool valid);
-
-//     modifier onlyOwner {
-//         require(_msgSender() == owner, "You are not the owner");
-//         _;
-//     }
-
-//     modifier fileExists(bytes32 _fileHash) {
-//         require(!files[_fileHash].exists, "File already exists");
-//         _;
-//     }
-
-//     constructor(address trustedForwarder) ERC2771Context(trustedForwarder) {
-//         owner = _msgSender();
-//         DOMAIN_SEPARATOR = keccak256(
-//             abi.encode(
-//                 keccak256("EIP712Domain(string name,string version,address verifyingContract)"),
-//                 keccak256(bytes("VerifierContract")),
-//                 keccak256(bytes("1")),
-//                 address(this)
-//             )
-//         );
-//     }
-
-//     function permitUpload(
-//         address holder,
-//         bytes32 _fileHash,
-//         FileData memory fileData,
-//         uint256 nonce,
-//         uint256 expiry,
-//         uint8 v,
-//         bytes32 r,
-//         bytes32 s
-//     ) external fileExists(_fileHash) {
-//         require(expiry == 0 || block.timestamp <= expiry, "Permit expired");
-//         require(nonce == nonces[holder]++, "Invalid nonce");
-
-//         bytes32 digest = keccak256(
-//             abi.encodePacked(
-//                 "\x19\x01",
-//                 DOMAIN_SEPARATOR,
-//                 keccak256(abi.encode(PERMIT_TYPEHASH, holder, _fileHash, fileData, nonce, expiry))
-//             )
-//         );
-
-//         address recoveredAddress = ecrecover(digest, v, r, s);
-//         require(recoveredAddress != address(0) && recoveredAddress == holder, "Invalid signature");
-
-//         _uploadFile(_fileHash, fileData, holder);
-//     }
-
-//     function _uploadFile(
-//         bytes32 _fileHash,
-//         FileData memory fileData,
-//         address _holder
-//     ) internal {
-//         files[_fileHash] = FileInfo({
-//             id: fileData.id,
-//             fileHash: _fileHash,
-//             metadataHash: fileData.metadataHash,
-//             encryptedFileKey: fileData.encryptedFileKey,
-//             holder: _holder,
-//             exists: true
-//         });
-//         filesById[fileData.id] = files[_fileHash];
-//         holderFiles[_holder].push(_fileHash);
-//         emit FileUploaded(_fileHash, _holder);
-//     }
-
-//     function getNonces(address account) external view returns (uint) {
-//         return nonces[account];
-//     }
-
-
-//     function getFileInfo(bytes32 _fileHash) public view fileExists(_fileHash) returns (FileInfo memory) {
-//         return files[_fileHash];
-//     }
-
-//     function verifyFileByHash(bytes32 _fileHash) external view fileExists(_fileHash) returns (bool) {
-//         return true;
-//     }
-
-//     function getFileInfoById(string memory _id) public view returns (FileInfo memory) {
-//         require(filesById[_id].exists, "File does not exist");
-//         return filesById[_id];
-//     }
-
-//     function getHolderFiles(address _holder) public view returns (bytes32[] memory) {
-//         return holderFiles[_holder];
-//     }
-
-//     function getHolderFileInfos(address _holder) public view returns (FileInfo[] memory) {
-//         bytes32[] memory holderFileHashes = holderFiles[_holder];
-//         FileInfo[] memory fileInfos = new FileInfo[](holderFileHashes.length);
-
-//         for (uint i = 0; i < holderFileHashes.length; i++) {
-//             fileInfos[i] = files[holderFileHashes[i]];
-//         }
-
-//         return fileInfos;
-//     }
-
-//     function IsTrustedForwarder(address forwarder) public view returns (bool) {
-//         return ERC2771Context.isTrustedForwarder(forwarder);
-//     }
-// }
