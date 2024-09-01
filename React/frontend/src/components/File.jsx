@@ -8,6 +8,7 @@ export default function File() {
   const { handleFile, file,checkMetaMaskConnection } = useContext(BlockContext);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false); // Loading state
+  const [holder,setHolder] = useState('');
   const fileInputRef = useRef(null);
 
   const handleClick = (e) => {
@@ -40,9 +41,11 @@ export default function File() {
       return;
     }
     
-
+    
     const formData = new FormData();
+    const slectedType= document.querySelector('select').value;
     formData.append('file', file);
+    formData.append('type', slectedType);
 
     try {
       setLoading(true); // Set loading state
@@ -57,7 +60,7 @@ export default function File() {
 
       const data = await response.json();
       console.log("Before uploadToFile", data, file);
-      await uploadFileToContract(file, data);
+      await uploadFileToContract(file, data,holder);
       setError(''); // Clear any errors on successful upload
     } catch (e) {
       console.error(e);
@@ -104,6 +107,22 @@ export default function File() {
               </svg>
             </button>
           )}
+        </div>
+        <div className="flex flex-col space-y-2">
+          <label className="text-xl font-semibold text-gray-700">
+            File type
+          </label>
+          <select className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+            <option selected>Select your file</option>
+            <option value="aadhaar">Aadhaar</option>
+            <option value="pan">PAN</option>
+          </select>
+        </div>
+        <div className="flex flex-col space-y-2">
+          <label className="text-xl font-semibold text-gray-700">
+            Holder Address
+          </label>
+          <input value={holder} onChange={(e)=>setHolder(e.target.value)} className='border border-gray-300 rounded-md p-2 w-full text-gray-700 focus:outline-none focus:border-blue-500 transition-all duration-200' placeholder='0xAB...' type="text" />
         </div>
         {error && <p className='text-red-500 text-sm'>{error}</p>}
         <button
