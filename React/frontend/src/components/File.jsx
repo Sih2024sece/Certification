@@ -25,34 +25,6 @@ export default function File() {
     setError(''); // Clear any existing errors
   };
 
-  const handleGetFile = async(e) => {
-    e.preventDefault();
-    const isMetaMaskConnected = await checkMetaMaskConnection();
-    if (!isMetaMaskConnected){
-      setError("Please connect your MetaMask wallet!");
-      console.log("Please connect your MetaMask wallet!")
-      return;
-    }
-    try {
-      setLoading(true); // Set loading state
-      const response = await fetch('http://localhost:5000/getfile', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch file data');
-      }
-
-      const data = await response.json();
-      
-      await verifyFileByHash(data["Aadhaar Number"]);
-      setError('');
-    }catch{
-      console.error(e);
-      setError('Error occurred while uploading the file.');
-    }
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -140,13 +112,6 @@ export default function File() {
           disabled={loading} // Disable the button when loading
         >
           {loading ? 'Uploading...' : 'Upload File'}
-        </button>
-        <button
-          onClick={handleGetFile}
-          className='bg-green-400 text-white font-semibold rounded-md w-40 p-2 mx-auto hover:bg-green-500 transition-all duration-200'
-          disabled={loading} // Disable the button when loading
-        >
-          {loading ? 'Getting File...' : 'Get File'}
         </button>
       </div>
     </div>

@@ -7,7 +7,7 @@ import { BlockProvider } from './context/Blockcontext';
 export const ContractAbi =[
   {
     "inputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "constructor"
   },
   {
@@ -15,9 +15,9 @@ export const ContractAbi =[
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
+        "internalType": "string",
         "name": "fileHash",
-        "type": "bytes32"
+        "type": "string"
       },
       {
         "indexed": true,
@@ -34,158 +34,25 @@ export const ContractAbi =[
     "inputs": [
       {
         "indexed": true,
+        "internalType": "string",
+        "name": "fileHash",
+        "type": "string"
+      },
+      {
+        "indexed": true,
         "internalType": "address",
-        "name": "user",
+        "name": "requester",
         "type": "address"
       },
       {
         "indexed": false,
-        "internalType": "bool",
-        "name": "valid",
-        "type": "bool"
+        "internalType": "uint256",
+        "name": "expirationTime",
+        "type": "uint256"
       }
     ],
-    "name": "ZKPVerified",
+    "name": "PermissionGranted",
     "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "name": "files",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "id",
-        "type": "string"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "fileHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "metadataHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes",
-        "name": "encryptedFileKey",
-        "type": "bytes"
-      },
-      {
-        "internalType": "address",
-        "name": "holder",
-        "type": "address"
-      },
-      {
-        "internalType": "bool",
-        "name": "exists",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "name": "filesById",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "id",
-        "type": "string"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "fileHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "metadataHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes",
-        "name": "encryptedFileKey",
-        "type": "bytes"
-      },
-      {
-        "internalType": "address",
-        "name": "holder",
-        "type": "address"
-      },
-      {
-        "internalType": "bool",
-        "name": "exists",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_fileHash",
-        "type": "bytes32"
-      }
-    ],
-    "name": "getFileInfo",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "string",
-            "name": "id",
-            "type": "string"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "fileHash",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "metadataHash",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bytes",
-            "name": "encryptedFileKey",
-            "type": "bytes"
-          },
-          {
-            "internalType": "address",
-            "name": "holder",
-            "type": "address"
-          },
-          {
-            "internalType": "bool",
-            "name": "exists",
-            "type": "bool"
-          }
-        ],
-        "internalType": "struct VerifierContract.FileInfo",
-        "name": "",
-        "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
   },
   {
     "inputs": [
@@ -201,13 +68,28 @@ export const ContractAbi =[
         "components": [
           {
             "internalType": "string",
-            "name": "id",
+            "name": "fileHash",
             "type": "string"
           },
           {
-            "internalType": "bytes32",
-            "name": "fileHash",
-            "type": "bytes32"
+            "internalType": "string",
+            "name": "fileName",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "encryptedFileAesKey",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "encryptedFilePrivateKey",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "fileType",
+            "type": "string"
           },
           {
             "internalType": "bytes32",
@@ -215,23 +97,18 @@ export const ContractAbi =[
             "type": "bytes32"
           },
           {
-            "internalType": "bytes",
-            "name": "encryptedFileKey",
-            "type": "bytes"
+            "internalType": "address",
+            "name": "issuer",
+            "type": "address"
           },
           {
             "internalType": "address",
             "name": "holder",
             "type": "address"
-          },
-          {
-            "internalType": "bool",
-            "name": "exists",
-            "type": "bool"
           }
         ],
-        "internalType": "struct VerifierContract.FileInfo",
-        "name": "",
+        "internalType": "struct VerifierContract.FileInfoView",
+        "name": "info",
         "type": "tuple"
       }
     ],
@@ -256,33 +133,13 @@ export const ContractAbi =[
             "type": "string"
           },
           {
-            "internalType": "bytes32",
-            "name": "fileHash",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "metadataHash",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bytes",
-            "name": "encryptedFileKey",
-            "type": "bytes"
-          },
-          {
-            "internalType": "address",
-            "name": "holder",
-            "type": "address"
-          },
-          {
-            "internalType": "bool",
-            "name": "exists",
-            "type": "bool"
+            "internalType": "string",
+            "name": "fileName",
+            "type": "string"
           }
         ],
-        "internalType": "struct VerifierContract.FileInfo[]",
-        "name": "",
+        "internalType": "struct VerifierContract.FileIdName[]",
+        "name": "result",
         "type": "tuple[]"
       }
     ],
@@ -292,69 +149,24 @@ export const ContractAbi =[
   {
     "inputs": [
       {
+        "internalType": "string",
+        "name": "_id",
+        "type": "string"
+      },
+      {
         "internalType": "address",
-        "name": "",
+        "name": "_requester",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "_duration",
         "type": "uint256"
       }
     ],
-    "name": "holderFiles",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "name": "metaFile",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "id",
-        "type": "string"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "fileHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "metadataHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes",
-        "name": "encryptedFileKey",
-        "type": "bytes"
-      },
-      {
-        "internalType": "address",
-        "name": "holder",
-        "type": "address"
-      },
-      {
-        "internalType": "bool",
-        "name": "exists",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
+    "name": "grantPermissionToFileInfo",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -373,12 +185,22 @@ export const ContractAbi =[
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "_fileHash",
-        "type": "bytes32"
-      },
-      {
         "components": [
+          {
+            "internalType": "string",
+            "name": "fileHash",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "fileName",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "holder",
+            "type": "address"
+          },
           {
             "internalType": "string",
             "name": "id",
@@ -390,13 +212,23 @@ export const ContractAbi =[
             "type": "bytes32"
           },
           {
-            "internalType": "bytes",
-            "name": "encryptedFileKey",
-            "type": "bytes"
+            "internalType": "string",
+            "name": "encryptedFileAesKey",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "encryptedFilePrivateKey",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "fileType",
+            "type": "string"
           }
         ],
-        "internalType": "struct VerifierContract.FileData",
-        "name": "fileData",
+        "internalType": "struct VerifierContract.FileUploadParams",
+        "name": "params",
         "type": "tuple"
       }
     ],
@@ -417,7 +249,7 @@ export const ContractAbi =[
     "outputs": [
       {
         "internalType": "bool",
-        "name": "",
+        "name": "exists",
         "type": "bool"
       }
     ],
@@ -427,8 +259,6 @@ export const ContractAbi =[
 ]
 export const contractAddress = '0xECB9688f2d725Abf62c927F411f4B5F4576943C5';
 export const provider = "https://shape-sepolia.g.alchemy.com/v2/MTZIuWDzO4ttv_IpzoPoesoxwNxvq0T4";
-const priv_key = "2b3ad6396415696369a9b2a77981e9d85645f7b0504361a5cb22a2178e3543a1";
-export const account_private_key = new Uint8Array(priv_key.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
 
 function App() {
   return (

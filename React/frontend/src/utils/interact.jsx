@@ -1,10 +1,15 @@
 import { ethers } from 'ethers';
 import FileEncrypt from './ecc';
-
 import { ContractAbi } from '../App';
 import { contractAddress } from '../App';
+import { create } from 'ipfs-http-client';
 
-export default async function uploadFileToContract(file, data) {
+const ipfs = create({
+  host: 'localhost',
+  port: '5001',
+  protocol: 'http',
+});
+export default async function uploadFileToContract(file, data, _fileName) {
   try {
     if (!file || !(file instanceof File)) {
       throw new Error('Invalid file object');
@@ -32,17 +37,25 @@ export default async function uploadFileToContract(file, data) {
 
     // Create file hash and metadata
     // Read the file as binary data
-    const arrayBuffer = await file.arrayBuffer();
-    const byteArray = new Uint8Array(arrayBuffer);
+    // const arrayBuffer = await file.arrayBuffer();
+    // const byteArray = new Uint8Array(arrayBuffer);
     
-        // Convert byte array to a hash
-    const fileHash = ethers.utils.keccak256(ethers.utils.hexlify(byteArray));
-    const encryptedFileKeyBytes = ethers.utils.toUtf8Bytes(encryptedFileData.AesKey);
+      // Convert byte array to a hash
+    // const fileHash = ethers.utils.keccak256(ethers.utils.hexlify(byteArray));
+        // Convert the file to a buffer
+    
+    // Upload file to IPFS
+    const added = await ipfs.add(encryptedFileData.file);
+    console.log('File uploaded successfully. IPFS hash:', added.path);
+    const fileHash = added.path;
 
     const fileData = {
       id: data["Aadhaar Number"], // Replace 'file1' with dynamic ID if necessary
+      fileName: "Aadhaar",
       metadataHash: ethers.utils.keccak256(ethers.utils.toUtf8Bytes(JSON.stringify(data))),
-      encryptedFileKey: encryptedFileKeyBytes
+      encryptedFileAesKey: encryptedFileData.AesKey,
+      encryptedFilePrivateKey:encryptedFileData.AesKey,
+      originalType: encryptedFileData.originalType
     };
 
     // Call the uploadFile function
