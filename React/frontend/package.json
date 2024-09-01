@@ -16,10 +16,12 @@
   "dependencies": {
     "@thirdweb-dev/react": "^4.9.4",
     "@thirdweb-dev/sdk": "^4.0.99",
+    "buffer": "^6.0.3",
     "crypto-js": "^4.2.0",
     "elliptic": "^6.5.7",
     "ethers": "^5.7.2",
     "frontend": "file:",
+    "ipfs-http-client": "^60.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-query": "^3.39.3",

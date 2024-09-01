@@ -21,7 +21,7 @@ CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST"], "allow_
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-@app.route('/getfile', methods=['POST'])
+
 @app.route('/getfile', methods=['POST'])
 def getfile():
     if 'file' not in request.files:

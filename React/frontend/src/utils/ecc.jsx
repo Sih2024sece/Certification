@@ -3,14 +3,16 @@ import CryptoJS from 'crypto-js';
 
 const ec = new EC('curve25519');
 
+// Generate ECC key pair
+const keyPair = ec.genKeyPair();
+export const publicKey = keyPair.getPublic();
+
+
 export default async function FileEncrypt(file) {
   try {
     // Read the file as an ArrayBuffer
     const fileArrayBuffer = await file.arrayBuffer();
 
-    // Generate ECC key pair
-    const keyPair = ec.genKeyPair();
-    const publicKey = keyPair.getPublic();
     const privateKey = keyPair.getPrivate();
 
     // Generate a random AES key
@@ -36,7 +38,6 @@ export default async function FileEncrypt(file) {
       file: encryptedBase64,
       AesKey: encryptedAesKey,
       privateKey: privateKey.toString(16),
-      publicKey: publicKey.encode('hex'),
       originalType: file.type
     };
   } catch (error) {
