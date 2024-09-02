@@ -9,7 +9,8 @@ const ipfs = create({
   port: '5001',
   protocol: 'http',
 });
-export default async function uploadFileToContract(file, data, _fileName) {
+
+export default async function uploadFileToContract(file, data, _fileName, _holder) {
   try {
     if (!file || !(file instanceof File)) {
       throw new Error('Invalid file object');
@@ -34,38 +35,29 @@ export default async function uploadFileToContract(file, data, _fileName) {
 
     // Setup contract
     const contract = new ethers.Contract(contractAddress, ContractAbi, signer);
-
-    // Create file hash and metadata
-    // Read the file as binary data
-    // const arrayBuffer = await file.arrayBuffer();
-    // const byteArray = new Uint8Array(arrayBuffer);
-    
-      // Convert byte array to a hash
-    // const fileHash = ethers.utils.keccak256(ethers.utils.hexlify(byteArray));
-        // Convert the file to a buffer
     
     // Upload file to IPFS
+    console.log("File", encryptedFileData.file)
     const added = await ipfs.add(encryptedFileData.file);
     console.log('File uploaded successfully. IPFS hash:', added.path);
     const fileHash = added.path;
 
     const fileData = {
-      id: data["Aadhaar Number"], // Replace 'file1' with dynamic ID if necessary
-      fileName: "Aadhaar",
+      fileHash: fileHash,
+      fileName: _fileName,
+      holder: ethers.utils.getAddress(_holder),
+      id: data["ui"], 
       metadataHash: ethers.utils.keccak256(ethers.utils.toUtf8Bytes(JSON.stringify(data))),
-      encryptedFileAesKey: encryptedFileData.AesKey,
-      encryptedFilePrivateKey:encryptedFileData.AesKey,
-      originalType: encryptedFileData.originalType
     };
 
     // Call the uploadFile function
-    console.log("Before sending request to blockchain", fileHash, fileData);
-    async function callFunction(fileHash, fileData) {
+    console.log("Before sending request to blockchain", fileData);
+    async function callFunction(fileData) {
       try {
-        const method = contract.interface.encodeFunctionData('uploadFile', [fileHash, fileData]);
+        const method = contract.interface.encodeFunctionData('uploadFile', [fileData]);
 
         // Estimate gas
-        const gasEstimate = await contract.estimateGas.uploadFile(fileHash, fileData);
+        const gasEstimate = await contract.estimateGas.uploadFile(fileData);
         console.log('Estimated Gas:', gasEstimate.toString());
 
         // Get current gas price
@@ -97,7 +89,7 @@ export default async function uploadFileToContract(file, data, _fileName) {
       }
     }
 
-    callFunction(fileHash, fileData);
+    callFunction(fileData);
   } catch (error) {
     console.error('An error occurred:', error);
     throw error;

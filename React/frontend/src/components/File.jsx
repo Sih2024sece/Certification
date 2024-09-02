@@ -2,7 +2,6 @@ import React, { useContext, useRef, useState } from 'react';
 import { BlockContext } from '../context/Blockcontext';
 import ConnectWallet from './ConnectWallet';
 import uploadFileToContract from '../utils/interact';
-import verifyFileByHash from '../utils/verifyFile';
 
 export default function File() {
   const { handleFile, file,checkMetaMaskConnection } = useContext(BlockContext);
@@ -60,7 +59,7 @@ export default function File() {
 
       const data = await response.json();
       console.log("Before uploadToFile", data, file);
-      await uploadFileToContract(file, data,holder);
+      await uploadFileToContract(file, data, slectedType, holder);
       setError(''); // Clear any errors on successful upload
     } catch (e) {
       console.error(e);
