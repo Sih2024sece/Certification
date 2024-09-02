@@ -1,6 +1,5 @@
 import React, { useContext, useRef, useState } from 'react';
 import { BlockContext } from '../context/Blockcontext';
-import ConnectWallet from './ConnectWallet';
 import uploadFileToContract from '../utils/interact';
 
 export default function File() {
@@ -71,7 +70,7 @@ export default function File() {
 
   return (
     <div className='background flex flex-col h-screen items-center justify-center p-6'>
-      <ConnectWallet />
+      
       <div className='bg-white flex flex-col gap-10 p-6 rounded-lg shadow-xl max-w-lg w-full'>
         <label htmlFor="file-upload" className='text-xl font-semibold text-gray-700'>
           Upload your file

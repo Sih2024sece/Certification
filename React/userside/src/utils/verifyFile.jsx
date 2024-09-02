@@ -26,6 +26,7 @@ export default async function getFileByHash(data) {
 
 
     const result = await contract.callStatic.verifyFileByMetaHash(metaHash);
+    return result;
     console.log('File exists:', result);
   } catch (error) {
     console.error('An error occurred:', error);

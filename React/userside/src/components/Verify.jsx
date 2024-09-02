@@ -28,8 +28,9 @@ export default function Verify() {
     }
 
     const formData = new FormData();
-    formData.append('file', file);
-
+    const slectedType= document.querySelector('select').value;
+    formData.append('file', file);  
+    formData.append('type', slectedType);
     setLoading(true);
 
     try {
@@ -44,11 +45,13 @@ export default function Verify() {
 
       const data = await response.json();
       console.log(data);
-      await getFileByHash(data);
+      const result = await getFileByHash(data);
+      console.log("The result is ",result);
       setError('');
       
       // Show success toast after upload
-      toast.success("File uploaded successfully for verification!", {
+      if(result){
+      toast.success("File exists !", {
         icon: <FaCheckCircle style={{ color: 'white' }} />, // Custom icon with specific color
         style: {
           backgroundColor: "#4CAF50",
@@ -56,6 +59,10 @@ export default function Verify() {
           borderRadius: "8px",
         },
       });
+    }
+    else{
+      toast.error("File doesn't exists in the chain !");
+    }
 
     } catch (error) {
       console.error(error);
@@ -139,6 +146,16 @@ export default function Verify() {
               </div>
             )}
           </label>
+          <div className="flex flex-col space-y-2 w-full">
+          <label className="text-xl font-semibold text-gray-700">
+            File type
+          </label>
+          <select className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+            <option selected>Select your file</option>
+            <option value="aadhaar">Aadhaar</option>
+            <option value="pan">PAN</option>
+          </select>
+        </div>
 
           <button
             onClick={handleSubmit}

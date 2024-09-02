@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import ConnectWallet from './ConnectWallet';
+
 import ShowNotification from './ShowNotification';
 
 export default function Navbar() {
@@ -52,7 +52,7 @@ export default function Navbar() {
         >
           <div className="flex flex-col gap-5 mt-5 sm:flex-row sm:items-center sm:justify-end sm:mt-0 sm:ps-5">
           <div className=' flex flex-row gap-2'> 
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
           <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> 
             <Link className="font-medium text-gray-600 text-lg focus:outline-none" to="/" aria-current="page">Home</Link>
             </div>
@@ -64,7 +64,7 @@ export default function Navbar() {
            <div className=' flex flex-row gap-2'> 
            
             {/* <Link className="font-medium text-gray-600 hover:text-gray-400 focus:outline-none focus:text-gray-400" to="/wallet"> */}
-            <ConnectWallet/>
+           {/* <ConnectWallet/> */}
             </div>
             <div className=' flex flex-row gap-2'>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file">
