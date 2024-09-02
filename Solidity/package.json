@@ -20,6 +20,7 @@
     "@chainlink/contracts": "^1.2.0",
     "@openzeppelin/cli": "^2.8.2",
     "@openzeppelin/contracts-upgradeable": "^5.0.2",
+    "sih2k24": "file:",
     "thirdweb": "^5.48.2"
   }
 }
